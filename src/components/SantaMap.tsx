@@ -19,24 +19,25 @@ interface SantaMapProps {
   currentTime: Date;
   selectedProfile: Profile | null;
   isTracking: boolean;
+  showSantaAtVillage?: boolean;
 }
 
 // Create custom icons
 const createSantaIcon = () => {
   return L.divIcon({
-    html: `<div style="font-size: 36px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">🎅</div>`,
+    html: `<div style="font-size: 40px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); animation: float 3s ease-in-out infinite;">🎅</div>`,
     className: 'santa-marker',
-    iconSize: [40, 40],
-    iconAnchor: [20, 20],
+    iconSize: [44, 44],
+    iconAnchor: [22, 22],
   });
 };
 
 const createVillageIcon = () => {
   return L.divIcon({
-    html: `<div style="font-size: 28px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">🏠</div>`,
+    html: `<div style="font-size: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">🏠</div>`,
     className: 'village-marker',
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
+    iconSize: [36, 36],
+    iconAnchor: [18, 18],
   });
 };
 
@@ -50,13 +51,24 @@ const createHomeIcon = (avatar: string) => {
 };
 
 // Component to handle map movements
-function MapController({ selectedProfile, santaPosition }: { selectedProfile: Profile | null; santaPosition: SantaPosition }) {
+function MapController({ selectedProfile, santaPosition, showSantaAtVillage }: { selectedProfile: Profile | null; santaPosition: SantaPosition; showSantaAtVillage?: boolean }) {
   const map = useMap();
   const hasMovedRef = useRef(false);
+  const initializedRef = useRef(false);
+
+  // Initial view - center on Santa Claus Village
+  useEffect(() => {
+    if (!initializedRef.current) {
+      if (showSantaAtVillage) {
+        map.setView([SANTA_VILLAGE.lat, SANTA_VILLAGE.lon], 4, { animate: false });
+      }
+      initializedRef.current = true;
+    }
+  }, [map, showSantaAtVillage]);
 
   useEffect(() => {
     if (selectedProfile && !hasMovedRef.current) {
-      map.flyTo([selectedProfile.lat, selectedProfile.lon], 8, { duration: 1 });
+      map.flyTo([selectedProfile.lat, selectedProfile.lon], 6, { duration: 1.5 });
       hasMovedRef.current = true;
     }
   }, [selectedProfile, map]);
@@ -69,7 +81,7 @@ function MapController({ selectedProfile, santaPosition }: { selectedProfile: Pr
   return null;
 }
 
-export function SantaMap({ santaPosition, currentTime, selectedProfile, isTracking }: SantaMapProps) {
+export function SantaMap({ santaPosition, currentTime, selectedProfile, isTracking, showSantaAtVillage }: SantaMapProps) {
   const [trajectoryPath, setTrajectoryPath] = useState<[number, number][]>([]);
   
   useEffect(() => {
@@ -81,9 +93,13 @@ export function SantaMap({ santaPosition, currentTime, selectedProfile, isTracki
   const santaIcon = createSantaIcon();
   const villageIcon = createVillageIcon();
 
+  // Determine Santa's display position
+  const santaDisplayLat = showSantaAtVillage ? SANTA_VILLAGE.lat : santaPosition.lat;
+  const santaDisplayLon = showSantaAtVillage ? SANTA_VILLAGE.lon : santaPosition.lon;
+
   return (
     <MapContainer
-      center={[40.4168, -3.7038]} // Madrid as default center
+      center={[SANTA_VILLAGE.lat, SANTA_VILLAGE.lon]}
       zoom={4}
       className="w-full h-full"
       zoomControl={false}
@@ -93,7 +109,7 @@ export function SantaMap({ santaPosition, currentTime, selectedProfile, isTracki
         url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
       />
 
-      <MapController selectedProfile={selectedProfile} santaPosition={santaPosition} />
+      <MapController selectedProfile={selectedProfile} santaPosition={santaPosition} showSantaAtVillage={showSantaAtVillage} />
 
       {/* Trajectory path */}
       {trajectoryPath.length > 1 && (
@@ -108,31 +124,37 @@ export function SantaMap({ santaPosition, currentTime, selectedProfile, isTracki
         />
       )}
 
-      {/* Santa Claus Village marker */}
-      <Marker position={[SANTA_VILLAGE.lat, SANTA_VILLAGE.lon]} icon={villageIcon}>
-        <Popup>
-          <div className="text-center">
-            <p className="font-bold">🏠 Santa Claus Village</p>
-            <p className="text-xs text-gray-600">Rovaniemi, Laponia</p>
-          </div>
-        </Popup>
-      </Marker>
-
-      {/* Santa marker */}
+      {/* Santa Claus Village marker - only show when Santa is not there */}
       {isTracking && (
-        <Marker 
-          position={[santaPosition.lat, santaPosition.lon]} 
-          icon={santaIcon}
-        >
+        <Marker position={[SANTA_VILLAGE.lat, SANTA_VILLAGE.lon]} icon={villageIcon}>
           <Popup>
             <div className="text-center">
-              <p className="font-bold">🎅 ¡Papá Noel!</p>
-              <p className="text-xs text-gray-600">{santaPosition.currentSegmentLabel}</p>
-              <p className="text-xs">Velocidad: {santaPosition.speed.toLocaleString()} km/h</p>
+              <p className="font-bold">🏠 Santa Claus Village</p>
+              <p className="text-xs text-gray-600">Rovaniemi, Laponia</p>
             </div>
           </Popup>
         </Marker>
       )}
+
+      {/* Santa marker - always visible */}
+      <Marker 
+        position={[santaDisplayLat, santaDisplayLon]} 
+        icon={santaIcon}
+      >
+        <Popup>
+          <div className="text-center">
+            <p className="font-bold">🎅 Papá Noel</p>
+            {showSantaAtVillage ? (
+              <p className="text-xs text-gray-600">Preparándose en Santa Claus Village</p>
+            ) : (
+              <>
+                <p className="text-xs text-gray-600">{santaPosition.currentSegmentLabel}</p>
+                <p className="text-xs">Velocidad: {santaPosition.speed.toLocaleString()} km/h</p>
+              </>
+            )}
+          </div>
+        </Popup>
+      </Marker>
 
       {/* Selected home marker */}
       {selectedProfile && (

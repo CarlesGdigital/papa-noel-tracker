@@ -14,16 +14,57 @@ interface StatsBarProps {
   selectedProfile: Profile | null;
   currentTime: Date;
   isTracking: boolean;
+  isWaiting?: boolean;
 }
 
-export function StatsBar({ santaPosition, etaResult, selectedProfile, currentTime, isTracking }: StatsBarProps) {
-  if (!isTracking) {
+export function StatsBar({ santaPosition, etaResult, selectedProfile, currentTime, isTracking, isWaiting }: StatsBarProps) {
+  // Waiting state - Santa is at the village
+  if (isWaiting) {
+    return (
+      <div className="glass rounded-t-3xl p-4">
+        <div className="flex items-center gap-4 py-2">
+          <div className="text-4xl animate-bounce-soft">🎅</div>
+          <div className="flex-1">
+            <p className="text-lg font-fredoka text-snow">Papá Noel está preparándose</p>
+            <p className="text-sm text-muted-foreground">en Santa Claus Village, Laponia</p>
+          </div>
+        </div>
+        
+        {/* Stats preview */}
+        <div className="grid grid-cols-2 gap-3 mt-3">
+          <div className="bg-muted/30 rounded-xl p-3 flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-christmas-red/20">
+              <Gift className="w-5 h-5 text-christmas-red" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Regalos listos</p>
+              <p className="text-sm font-fredoka text-snow">8.5B 🎁</p>
+            </div>
+          </div>
+
+          <div className="bg-muted/30 rounded-xl p-3 flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-christmas-green/20">
+              <Navigation className="w-5 h-5 text-christmas-green" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Primera parada</p>
+              <p className="text-sm font-fredoka text-snow">Helsinki</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Ended state
+  if (!isTracking && !isWaiting) {
     return (
       <div className="glass rounded-t-3xl p-4">
         <div className="text-center py-4">
           <div className="text-4xl mb-2">😴</div>
           <p className="text-lg font-fredoka text-snow">Papá Noel está descansando</p>
           <p className="text-sm text-muted-foreground">en Santa Claus Village</p>
+          <p className="text-xs text-christmas-gold mt-2">¡Feliz Navidad! 🎄</p>
         </div>
       </div>
     );
