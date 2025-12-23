@@ -1,9 +1,14 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { Settings, Volume2, VolumeX, Trash2, FlaskConical } from 'lucide-react';
 import { clearDeviceId } from '@/lib/deviceId';
 import { useDemoStore } from '@/lib/demoStore';
+import { toast } from 'sonner';
+
+const DEMO_PASSWORD = '123456789admin';
 
 interface SettingsSheetProps {
   soundEnabled: boolean;
@@ -13,6 +18,8 @@ interface SettingsSheetProps {
 
 export function SettingsSheet({ soundEnabled, onToggleSound, onResetProfiles }: SettingsSheetProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  const [password, setPassword] = useState('');
   const isDemoMode = useDemoStore((s) => s.isDemoMode);
   const enableDemoMode = useDemoStore((s) => s.enableDemoMode);
   const disableDemoMode = useDemoStore((s) => s.disableDemoMode);
@@ -29,13 +36,27 @@ export function SettingsSheet({ soundEnabled, onToggleSound, onResetProfiles }: 
   const handleToggleDemo = () => {
     if (isDemoMode) {
       disableDemoMode();
+      setIsOpen(false);
     } else {
-      enableDemoMode();
+      setIsPasswordDialogOpen(true);
     }
-    setIsOpen(false);
+  };
+
+  const handlePasswordSubmit = () => {
+    if (password === DEMO_PASSWORD) {
+      enableDemoMode();
+      setIsPasswordDialogOpen(false);
+      setIsOpen(false);
+      setPassword('');
+      toast.success('Modo demo activado');
+    } else {
+      toast.error('Contraseña incorrecta');
+      setPassword('');
+    }
   };
 
   return (
+    <>
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         <Button variant="ghost" size="icon" className="text-snow hover:bg-muted/50">
@@ -108,5 +129,42 @@ export function SettingsSheet({ soundEnabled, onToggleSound, onResetProfiles }: 
         </div>
       </SheetContent>
     </Sheet>
+
+      {/* Password Dialog */}
+      <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
+        <DialogContent className="glass border-border/50">
+          <DialogHeader>
+            <DialogTitle className="font-fredoka text-snow flex items-center gap-2">
+              <FlaskConical className="w-5 h-5 text-christmas-gold" />
+              Modo Demo
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground mb-4">
+              Introduce la contraseña para acceder al modo demo:
+            </p>
+            <Input
+              type="password"
+              placeholder="Contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handlePasswordSubmit()}
+              className="bg-muted/30 border-border/50"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setIsPasswordDialogOpen(false);
+              setPassword('');
+            }}>
+              Cancelar
+            </Button>
+            <Button onClick={handlePasswordSubmit} className="gradient-christmas text-snow">
+              Acceder
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
