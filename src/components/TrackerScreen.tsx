@@ -37,6 +37,7 @@ export function TrackerScreen() {
   const [isProfilesSheetOpen, setIsProfilesSheetOpen] = useState(false);
   const [isStatsExpanded, setIsStatsExpanded] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
+  const [showProfilePrompt, setShowProfilePrompt] = useState(false);
   
   const [currentTime, setCurrentTime] = useState(new Date());
   const [santaPosition, setSantaPosition] = useState<SantaPosition>(getSantaPosition(new Date()));
@@ -60,11 +61,12 @@ export function TrackerScreen() {
       
       setProfiles(data as Profile[]);
       
-      // Auto-select first profile or show modal if none
+      // Auto-select first profile
       if (data && data.length > 0) {
         setSelectedProfile(data[0] as Profile);
       } else {
-        setIsProfileModalOpen(true);
+        // Show prompt to create profile after a short delay
+        setTimeout(() => setShowProfilePrompt(true), 1500);
       }
     };
     
@@ -120,6 +122,7 @@ export function TrackerScreen() {
     });
     setSelectedProfile(profile);
     setEditingProfile(null);
+    setShowProfilePrompt(false);
   };
 
   const handleProfileDeleted = (id: string) => {
@@ -141,6 +144,7 @@ export function TrackerScreen() {
   }, []);
 
   const isTracking = trackingStatus === 'tracking';
+  const isWaiting = trackingStatus === 'countdown';
 
   return (
     <div className="relative h-screen flex flex-col overflow-hidden gradient-night">
@@ -194,19 +198,43 @@ export function TrackerScreen() {
         </div>
       </header>
 
-      {/* Map */}
+      {/* Map - always visible now */}
       <div className="flex-1 relative z-10">
-        {trackingStatus === 'countdown' ? (
-          <div className="h-full flex items-center justify-center p-6">
-            <Countdown onTrackingStart={handleTrackingStart} />
+        <SantaMap
+          santaPosition={santaPosition}
+          currentTime={currentTime}
+          selectedProfile={selectedProfile}
+          isTracking={isTracking}
+          showSantaAtVillage={isWaiting || trackingStatus === 'ended'}
+        />
+        
+        {/* Countdown overlay when waiting */}
+        {isWaiting && (
+          <div className="absolute inset-0 flex items-end justify-center pb-48 pointer-events-none">
+            <div className="glass rounded-2xl p-6 pointer-events-auto animate-slide-up">
+              <Countdown onTrackingStart={handleTrackingStart} />
+            </div>
           </div>
-        ) : (
-          <SantaMap
-            santaPosition={santaPosition}
-            currentTime={currentTime}
-            selectedProfile={selectedProfile}
-            isTracking={isTracking}
-          />
+        )}
+        
+        {/* Prompt to add profile */}
+        {showProfilePrompt && profiles.length === 0 && (
+          <div className="absolute bottom-32 left-4 right-4 z-30 animate-slide-up">
+            <div className="glass rounded-2xl p-4 flex items-center gap-4">
+              <div className="text-3xl">🏠</div>
+              <div className="flex-1">
+                <p className="text-snow font-fredoka">¡Añade tu casa!</p>
+                <p className="text-xs text-muted-foreground">Para saber cuándo llegará Papá Noel</p>
+              </div>
+              <Button
+                onClick={() => setIsProfileModalOpen(true)}
+                className="gradient-christmas text-snow"
+                size="sm"
+              >
+                Añadir
+              </Button>
+            </div>
+          </div>
         )}
       </div>
 
@@ -230,6 +258,7 @@ export function TrackerScreen() {
             selectedProfile={selectedProfile}
             currentTime={currentTime}
             isTracking={isTracking}
+            isWaiting={isWaiting}
           />
         )}
       </div>
