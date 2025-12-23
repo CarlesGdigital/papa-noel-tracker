@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Settings, Volume2, VolumeX, Trash2 } from 'lucide-react';
+import { Settings, Volume2, VolumeX, Trash2, FlaskConical } from 'lucide-react';
 import { clearDeviceId } from '@/lib/deviceId';
+import { useDemoStore } from '@/lib/demoStore';
 
 interface SettingsSheetProps {
   soundEnabled: boolean;
@@ -12,6 +13,7 @@ interface SettingsSheetProps {
 
 export function SettingsSheet({ soundEnabled, onToggleSound, onResetProfiles }: SettingsSheetProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const { isDemoMode, enableDemoMode, disableDemoMode } = useDemoStore();
 
   const handleReset = () => {
     if (confirm('¿Eliminar todos los perfiles y datos? Esta acción no se puede deshacer.')) {
@@ -20,6 +22,15 @@ export function SettingsSheet({ soundEnabled, onToggleSound, onResetProfiles }: 
       setIsOpen(false);
       window.location.reload();
     }
+  };
+
+  const handleToggleDemo = () => {
+    if (isDemoMode) {
+      disableDemoMode();
+    } else {
+      enableDemoMode();
+    }
+    setIsOpen(false);
   };
 
   return (
@@ -35,6 +46,29 @@ export function SettingsSheet({ soundEnabled, onToggleSound, onResetProfiles }: 
         </SheetHeader>
         
         <div className="flex flex-col gap-4 mt-6">
+          {/* Demo mode toggle */}
+          <button
+            onClick={handleToggleDemo}
+            className={`flex items-center justify-between p-4 rounded-xl transition-colors ${
+              isDemoMode 
+                ? 'bg-christmas-gold/20 ring-2 ring-christmas-gold' 
+                : 'bg-muted/30 hover:bg-muted/50'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <FlaskConical className={`w-5 h-5 ${isDemoMode ? 'text-christmas-gold' : 'text-muted-foreground'}`} />
+              <div className="text-left">
+                <span className="text-snow block">Modo Demo</span>
+                <span className="text-xs text-muted-foreground">
+                  Simula el viaje de Papá Noel
+                </span>
+              </div>
+            </div>
+            <div className={`w-12 h-6 rounded-full transition-colors ${isDemoMode ? 'bg-christmas-gold' : 'bg-muted'}`}>
+              <div className={`w-5 h-5 rounded-full bg-snow mt-0.5 transition-transform ${isDemoMode ? 'translate-x-6' : 'translate-x-0.5'}`} />
+            </div>
+          </button>
+
           {/* Sound toggle */}
           <button
             onClick={onToggleSound}

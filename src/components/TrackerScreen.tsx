@@ -8,9 +8,11 @@ import { MessageToast } from './MessageToast';
 import { ConfettiEffect } from './ConfettiEffect';
 import { Countdown } from './Countdown';
 import { SnowEffect } from './SnowEffect';
+import { DemoControls } from './DemoControls';
 import { getSantaPosition, calculateETA, SantaPosition, ETAResult } from '@/lib/santaTracking';
 import { TRACKING_START, TRACKING_END } from '@/lib/waypoints';
 import { getDeviceId } from '@/lib/deviceId';
+import { useDemoStore } from '@/lib/demoStore';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -44,6 +46,9 @@ export function TrackerScreen() {
   const [etaResult, setEtaResult] = useState<ETAResult | null>(null);
   const [trackingStatus, setTrackingStatus] = useState<TrackingStatus>('countdown');
 
+  // Demo mode
+  const { isDemoMode, getCurrentTime, tick } = useDemoStore();
+
   // Load profiles on mount
   useEffect(() => {
     const loadProfiles = async () => {
@@ -73,10 +78,10 @@ export function TrackerScreen() {
     loadProfiles();
   }, []);
 
-  // Check tracking status
+  // Check tracking status based on current time (real or simulated)
   useEffect(() => {
     const checkStatus = () => {
-      const now = new Date();
+      const now = getCurrentTime();
       if (now < TRACKING_START) {
         setTrackingStatus('countdown');
       } else if (now >= TRACKING_END) {
@@ -87,20 +92,23 @@ export function TrackerScreen() {
     };
     
     checkStatus();
-    const interval = setInterval(checkStatus, 1000);
+    const interval = setInterval(checkStatus, 100);
     return () => clearInterval(interval);
-  }, []);
+  }, [getCurrentTime, isDemoMode]);
 
-  // Update Santa position every second
+  // Update Santa position and demo tick
   useEffect(() => {
     const interval = setInterval(() => {
-      const now = new Date();
+      // Tick demo if active
+      tick();
+      
+      const now = getCurrentTime();
       setCurrentTime(now);
       setSantaPosition(getSantaPosition(now));
-    }, 1000);
+    }, 100); // Faster update for smoother demo
     
     return () => clearInterval(interval);
-  }, []);
+  }, [getCurrentTime, tick]);
 
   // Calculate ETA when position or selected profile changes
   useEffect(() => {
@@ -150,11 +158,19 @@ export function TrackerScreen() {
     <div className="relative h-screen flex flex-col overflow-hidden gradient-night">
       <SnowEffect count={15} />
       
+      {/* Demo Controls */}
+      <DemoControls />
+      
       {/* Header */}
       <header className="relative z-20 flex items-center justify-between p-4 safe-area-inset">
         <div className="flex items-center gap-2">
           <span className="text-2xl">🎅</span>
           <h1 className="font-fredoka text-lg text-snow">Loba Ball</h1>
+          {isDemoMode && (
+            <span className="text-xs bg-christmas-gold text-accent-foreground px-2 py-0.5 rounded-full">
+              DEMO
+            </span>
+          )}
         </div>
         
         <div className="flex items-center gap-2">
@@ -208,8 +224,8 @@ export function TrackerScreen() {
           showSantaAtVillage={isWaiting || trackingStatus === 'ended'}
         />
         
-        {/* Countdown overlay when waiting */}
-        {isWaiting && (
+        {/* Countdown overlay when waiting (only in non-demo mode) */}
+        {isWaiting && !isDemoMode && (
           <div className="absolute inset-0 flex items-end justify-center pb-48 pointer-events-none">
             <div className="glass rounded-2xl p-6 pointer-events-auto animate-slide-up">
               <Countdown onTrackingStart={handleTrackingStart} />
@@ -218,7 +234,7 @@ export function TrackerScreen() {
         )}
         
         {/* Prompt to add profile */}
-        {showProfilePrompt && profiles.length === 0 && (
+        {showProfilePrompt && profiles.length === 0 && !isDemoMode && (
           <div className="absolute bottom-32 left-4 right-4 z-30 animate-slide-up">
             <div className="glass rounded-2xl p-4 flex items-center gap-4">
               <div className="text-3xl">🏠</div>
