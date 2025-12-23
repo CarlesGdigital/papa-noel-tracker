@@ -1,14 +1,33 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState, useEffect } from 'react';
+import { HomeScreen } from '@/components/HomeScreen';
+import { TrackerScreen } from '@/components/TrackerScreen';
+
+type AppScreen = 'home' | 'tracker';
 
 const Index = () => {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
-  );
+  const [currentScreen, setCurrentScreen] = useState<AppScreen>('home');
+  const [hasStarted, setHasStarted] = useState(false);
+
+  // Check if user has already started before
+  useEffect(() => {
+    const started = localStorage.getItem('loba_ball_started');
+    if (started === 'true') {
+      setCurrentScreen('tracker');
+      setHasStarted(true);
+    }
+  }, []);
+
+  const handleStart = () => {
+    localStorage.setItem('loba_ball_started', 'true');
+    setHasStarted(true);
+    setCurrentScreen('tracker');
+  };
+
+  if (currentScreen === 'home' && !hasStarted) {
+    return <HomeScreen onStart={handleStart} />;
+  }
+
+  return <TrackerScreen />;
 };
 
 export default Index;
