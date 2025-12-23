@@ -3,19 +3,17 @@ import { useDemoStore } from '@/lib/demoStore';
 import { Play, Pause, SkipForward, FastForward, RotateCcw, MapPin, Flag, Home } from 'lucide-react';
 
 export function DemoControls() {
-  const { 
-    isDemoMode, 
-    isPlaying, 
-    speedMultiplier, 
-    simulatedTime,
-    togglePlayPause, 
-    setSpeedMultiplier,
-    jumpToStart,
-    jumpToSpain,
-    jumpToValencia,
-    jumpToEnd,
-    disableDemoMode,
-  } = useDemoStore();
+  const isDemoMode = useDemoStore((s) => s.isDemoMode);
+  const isPlaying = useDemoStore((s) => s.isPlaying);
+  const speedMultiplier = useDemoStore((s) => s.speedMultiplier);
+  const simulatedTime = useDemoStore((s) => s.simulatedTime);
+  const togglePlayPause = useDemoStore((s) => s.togglePlayPause);
+  const setSpeedMultiplier = useDemoStore((s) => s.setSpeedMultiplier);
+  const jumpToStart = useDemoStore((s) => s.jumpToStart);
+  const jumpToSpain = useDemoStore((s) => s.jumpToSpain);
+  const jumpToValencia = useDemoStore((s) => s.jumpToValencia);
+  const jumpToEnd = useDemoStore((s) => s.jumpToEnd);
+  const disableDemoMode = useDemoStore((s) => s.disableDemoMode);
 
   if (!isDemoMode) return null;
 

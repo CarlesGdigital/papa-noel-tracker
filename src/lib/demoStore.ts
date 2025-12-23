@@ -1,12 +1,14 @@
-import { create } from 'zustand';
+import { createStore, useStore } from 'zustand';
 import { TRACKING_START, TRACKING_END } from './waypoints';
 
 interface DemoState {
   isDemoMode: boolean;
   simulatedTime: Date;
-  speedMultiplier: number; // 1x, 10x, 100x, 1000x
+  speedMultiplier: number;
   isPlaying: boolean;
-  
+}
+
+interface DemoActions {
   enableDemoMode: () => void;
   disableDemoMode: () => void;
   setSpeedMultiplier: (speed: number) => void;
@@ -20,10 +22,12 @@ interface DemoState {
   getCurrentTime: () => Date;
 }
 
-export const useDemoStore = create<DemoState>((set, get) => ({
+type DemoStore = DemoState & DemoActions;
+
+const demoStore = createStore<DemoStore>((set, get) => ({
   isDemoMode: false,
   simulatedTime: new Date(TRACKING_START),
-  speedMultiplier: 100, // 100x by default in demo
+  speedMultiplier: 100,
   isPlaying: false,
   
   enableDemoMode: () => set({ 
@@ -49,13 +53,11 @@ export const useDemoStore = create<DemoState>((set, get) => ({
   }),
   
   jumpToSpain: () => set({ 
-    // Spain entry is around 21:05
     simulatedTime: new Date('2025-12-24T21:00:00+01:00'),
     isPlaying: true,
   }),
   
   jumpToValencia: () => set({ 
-    // Valencia is around 23:25
     simulatedTime: new Date('2025-12-24T23:20:00+01:00'),
     isPlaying: true,
   }),
@@ -71,7 +73,6 @@ export const useDemoStore = create<DemoState>((set, get) => ({
     
     const newTime = new Date(simulatedTime.getTime() + 1000 * speedMultiplier);
     
-    // Stop at end
     if (newTime >= TRACKING_END) {
       set({ simulatedTime: TRACKING_END, isPlaying: false });
       return;
@@ -85,3 +86,13 @@ export const useDemoStore = create<DemoState>((set, get) => ({
     return isDemoMode ? simulatedTime : new Date();
   },
 }));
+
+// Hook to use the store in React components
+export function useDemoStore(): DemoStore;
+export function useDemoStore<T>(selector: (state: DemoStore) => T): T;
+export function useDemoStore<T>(selector?: (state: DemoStore) => T) {
+  return useStore(demoStore, selector as (state: DemoStore) => T);
+}
+
+// Export the store for non-React usage
+export { demoStore };

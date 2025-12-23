@@ -46,8 +46,10 @@ export function TrackerScreen() {
   const [etaResult, setEtaResult] = useState<ETAResult | null>(null);
   const [trackingStatus, setTrackingStatus] = useState<TrackingStatus>('countdown');
 
-  // Demo mode
-  const { isDemoMode, getCurrentTime, tick } = useDemoStore();
+  // Demo mode - use individual selectors to avoid hook issues
+  const isDemoMode = useDemoStore((s) => s.isDemoMode);
+  const getCurrentTime = useDemoStore((s) => s.getCurrentTime);
+  const tick = useDemoStore((s) => s.tick);
 
   // Load profiles on mount
   useEffect(() => {

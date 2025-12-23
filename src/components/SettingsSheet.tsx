@@ -13,7 +13,9 @@ interface SettingsSheetProps {
 
 export function SettingsSheet({ soundEnabled, onToggleSound, onResetProfiles }: SettingsSheetProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const { isDemoMode, enableDemoMode, disableDemoMode } = useDemoStore();
+  const isDemoMode = useDemoStore((s) => s.isDemoMode);
+  const enableDemoMode = useDemoStore((s) => s.enableDemoMode);
+  const disableDemoMode = useDemoStore((s) => s.disableDemoMode);
 
   const handleReset = () => {
     if (confirm('¿Eliminar todos los perfiles y datos? Esta acción no se puede deshacer.')) {
