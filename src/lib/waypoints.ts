@@ -91,5 +91,11 @@ export const SANTA_VILLAGE = {
 };
 
 // Event start and end times
+// Note: These are fixed dates for the Christmas Eve 2025 event
 export const TRACKING_START = new Date('2025-12-24T18:00:00+01:00');
 export const TRACKING_END = new Date('2025-12-25T08:00:00+01:00');
+
+// Helper to check if we should show countdown (before tracking starts)
+export function isBeforeTracking(): boolean {
+  return new Date() < TRACKING_START;
+}
