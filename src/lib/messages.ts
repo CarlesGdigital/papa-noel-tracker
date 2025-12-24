@@ -43,6 +43,61 @@ export const EVENT_MESSAGES = {
   returned: { id: 'returned', type: 'info' as const, message: 'Papá Noel ha vuelto a Laponia. ¡Feliz Navidad!', emoji: '🏠' },
 };
 
+// Country flags mapping
+export const COUNTRY_FLAGS: Record<string, string> = {
+  'Finlandia': '🇫🇮',
+  'Suecia': '🇸🇪',
+  'Dinamarca': '🇩🇰',
+  'Alemania': '🇩🇪',
+  'Países Bajos': '🇳🇱',
+  'Bélgica': '🇧🇪',
+  'Francia': '🇫🇷',
+  'España': '🇪🇸',
+  'Portugal': '🇵🇹',
+  'Marruecos': '🇲🇦',
+  'Canarias': '🇮🇨',
+  'USA': '🇺🇸',
+  'México': '🇲🇽',
+  'Brasil': '🇧🇷',
+  'Argentina': '🇦🇷',
+  'Japón': '🇯🇵',
+  'China': '🇨🇳',
+  'India': '🇮🇳',
+  'EAU': '🇦🇪',
+  'Turquía': '🇹🇷',
+  'Grecia': '🇬🇷',
+  'Italia': '🇮🇹',
+  'Suiza': '🇨🇭',
+  'Rusia': '🇷🇺',
+};
+
+// Extract country from waypoint label
+export function extractCountry(label: string): string | null {
+  // Handle special cases
+  if (label === 'Santa Claus Village') return 'Finlandia';
+  if (label.includes('Canarias') || label.includes('Gran Canaria') || label.includes('Tenerife')) return 'Canarias';
+  if (label.includes('Santiago de Compostela')) return 'España';
+  
+  // Standard format: "City, Country"
+  const parts = label.split(', ');
+  if (parts.length >= 2) {
+    return parts[parts.length - 1];
+  }
+  
+  return null;
+}
+
+// Create a country entry message
+export function createCountryMessage(country: string): FunMessage {
+  const flag = COUNTRY_FLAGS[country] || '🌍';
+  return {
+    id: `country-${country}`,
+    type: 'info',
+    message: `¡Papá Noel ha llegado a ${country}!`,
+    emoji: flag,
+  };
+}
+
 // Get a random fun message
 export function getRandomMessage(): FunMessage {
   const index = Math.floor(Math.random() * RANDOM_MESSAGES.length);

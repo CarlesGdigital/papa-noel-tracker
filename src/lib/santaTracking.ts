@@ -7,6 +7,7 @@ export interface SantaPosition {
   speed: number; // km/h
   altitude: number; // meters (fictional)
   currentSegmentLabel: string;
+  currentLocation: string; // Current waypoint label for country detection
   nextStop: string;
   giftsDelivered: number;
   progress: number; // 0-100
@@ -87,6 +88,7 @@ export function getSantaPosition(now: Date): SantaPosition {
       speed: 0,
       altitude: 0,
       currentSegmentLabel: 'Preparándose en el taller',
+      currentLocation: SANTA_VILLAGE.label,
       nextStop: SANTA_WAYPOINTS[0].label,
       giftsDelivered: 0,
       progress: 0,
@@ -102,6 +104,7 @@ export function getSantaPosition(now: Date): SantaPosition {
       speed: 0,
       altitude: 0,
       currentSegmentLabel: 'Descansando en casa',
+      currentLocation: SANTA_VILLAGE.label,
       nextStop: 'Preparando para el próximo año',
       giftsDelivered: 8_500_000_000,
       progress: 100,
@@ -161,6 +164,7 @@ export function getSantaPosition(now: Date): SantaPosition {
     speed,
     altitude,
     currentSegmentLabel: currentWaypoint.label,
+    currentLocation: currentWaypoint.label,
     nextStop,
     giftsDelivered,
     progress: Math.round(overallProgress * 100),

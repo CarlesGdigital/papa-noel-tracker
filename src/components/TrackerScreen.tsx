@@ -297,6 +297,7 @@ export function TrackerScreen() {
         santaProgress={santaPosition.progress}
         etaResult={etaResult}
         selectedProfile={selectedProfile}
+        currentLocation={santaPosition.currentLocation}
       />
 
       <ConfettiEffect
