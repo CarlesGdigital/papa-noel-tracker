@@ -84,6 +84,12 @@ export function TrackerScreen() {
   useEffect(() => {
     const checkStatus = () => {
       const now = getCurrentTime();
+      console.log('Checking status:', {
+        now: now.toISOString(),
+        trackingStart: TRACKING_START.toISOString(),
+        isBefore: now < TRACKING_START,
+        isDemoMode
+      });
       if (now < TRACKING_START) {
         setTrackingStatus('countdown');
       } else if (now >= TRACKING_END) {
@@ -94,7 +100,7 @@ export function TrackerScreen() {
     };
     
     checkStatus();
-    const interval = setInterval(checkStatus, 100);
+    const interval = setInterval(checkStatus, 1000);
     return () => clearInterval(interval);
   }, [getCurrentTime, isDemoMode]);
 
