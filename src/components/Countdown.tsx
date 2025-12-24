@@ -38,20 +38,28 @@ export function Countdown({ onTrackingStart }: CountdownProps) {
   }, [onTrackingStart]);
 
   return (
-    <div className="flex flex-col items-center gap-6">
-      <h2 className="text-2xl font-fredoka text-snow text-center">
-        Papá Noel sale en...
-      </h2>
+    <div className="flex flex-col items-center gap-8">
+      <div className="text-center">
+        <h2 className="text-3xl md:text-4xl font-fredoka text-snow mb-2">
+          🎅 Papá Noel sale en...
+        </h2>
+        <p className="text-muted-foreground text-sm">
+          24 de diciembre a las 18:00
+        </p>
+      </div>
       
-      <div className="flex gap-3">
-        <TimeUnit value={timeLeft.days} label="días" />
-        <TimeUnit value={timeLeft.hours} label="horas" />
-        <TimeUnit value={timeLeft.minutes} label="min" />
-        <TimeUnit value={timeLeft.seconds} label="seg" />
+      <div className="flex gap-4 md:gap-6">
+        <TimeUnit value={timeLeft.days} label="DÍAS" />
+        <div className="text-4xl md:text-5xl font-fredoka text-christmas-gold self-center pb-6">:</div>
+        <TimeUnit value={timeLeft.hours} label="HORAS" />
+        <div className="text-4xl md:text-5xl font-fredoka text-christmas-gold self-center pb-6">:</div>
+        <TimeUnit value={timeLeft.minutes} label="MIN" />
+        <div className="text-4xl md:text-5xl font-fredoka text-christmas-gold self-center pb-6">:</div>
+        <TimeUnit value={timeLeft.seconds} label="SEG" />
       </div>
 
-      <p className="text-muted-foreground text-center text-sm">
-        24 de diciembre a las 18:00
+      <p className="text-center text-sm text-muted-foreground max-w-xs">
+        Prepara tus calcetines y espera... ¡pronto comenzará el viaje mágico!
       </p>
     </div>
   );
@@ -60,12 +68,12 @@ export function Countdown({ onTrackingStart }: CountdownProps) {
 function TimeUnit({ value, label }: { value: number; label: string }) {
   return (
     <div className="flex flex-col items-center">
-      <div className="glass rounded-xl p-3 min-w-[60px]">
-        <span className="text-2xl font-fredoka text-christmas-gold">
+      <div className="glass rounded-2xl p-4 md:p-6 min-w-[70px] md:min-w-[90px] border border-christmas-gold/30">
+        <span className="text-4xl md:text-6xl font-fredoka text-christmas-gold drop-shadow-glow">
           {value.toString().padStart(2, '0')}
         </span>
       </div>
-      <span className="text-xs text-muted-foreground mt-1">{label}</span>
+      <span className="text-xs md:text-sm text-muted-foreground mt-2 font-medium tracking-wider">{label}</span>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { FunMessage, getRandomMessage, EVENT_MESSAGES, ETA_THRESHOLDS } from '@/lib/messages';
+import { FunMessage, getRandomMessage, EVENT_MESSAGES, extractCountry, createCountryMessage } from '@/lib/messages';
 import { ETAResult } from '@/lib/santaTracking';
 import { X } from 'lucide-react';
 
@@ -13,13 +13,15 @@ interface MessageToastProps {
   santaProgress: number;
   etaResult: ETAResult | null;
   selectedProfile: Profile | null;
+  currentLocation?: string;
 }
 
-export function MessageToast({ isTracking, santaProgress, etaResult, selectedProfile }: MessageToastProps) {
+export function MessageToast({ isTracking, santaProgress, etaResult, selectedProfile, currentLocation }: MessageToastProps) {
   const [currentMessage, setCurrentMessage] = useState<FunMessage | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const triggeredEventsRef = useRef<Set<string>>(new Set());
   const lastRandomMessageRef = useRef<number>(0);
+  const lastCountryRef = useRef<string | null>(null);
 
   // Show a message
   const showMessage = (message: FunMessage) => {
@@ -32,6 +34,28 @@ export function MessageToast({ isTracking, santaProgress, etaResult, selectedPro
     }, 5000);
   };
 
+  // Check for country change notifications
+  useEffect(() => {
+    if (!isTracking || !currentLocation) return;
+    
+    const country = extractCountry(currentLocation);
+    if (!country) return;
+    
+    // If country changed, show notification
+    if (country !== lastCountryRef.current) {
+      lastCountryRef.current = country;
+      
+      // Don't show notification for initial location (Finlandia at start)
+      if (triggeredEventsRef.current.has('departure')) {
+        const countryKey = `country-${country}`;
+        if (!triggeredEventsRef.current.has(countryKey)) {
+          triggeredEventsRef.current.add(countryKey);
+          showMessage(createCountryMessage(country));
+        }
+      }
+    }
+  }, [isTracking, currentLocation]);
+
   // Check for event-based messages
   useEffect(() => {
     if (!isTracking) return;
@@ -42,19 +66,6 @@ export function MessageToast({ isTracking, santaProgress, etaResult, selectedPro
     if (santaProgress > 0 && !triggeredEventsRef.current.has('departure')) {
       triggeredEventsRef.current.add('departure');
       showMessage(EVENT_MESSAGES.departure);
-      return;
-    }
-
-    // Progress-based events (approximate)
-    if (santaProgress > 5 && !triggeredEventsRef.current.has('europeEntry')) {
-      triggeredEventsRef.current.add('europeEntry');
-      showMessage(EVENT_MESSAGES.europeEntry);
-      return;
-    }
-
-    if (santaProgress > 20 && !triggeredEventsRef.current.has('spainEntry')) {
-      triggeredEventsRef.current.add('spainEntry');
-      showMessage(EVENT_MESSAGES.spainEntry);
       return;
     }
 
