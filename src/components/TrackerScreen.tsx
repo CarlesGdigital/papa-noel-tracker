@@ -226,10 +226,10 @@ export function TrackerScreen() {
           showSantaAtVillage={isWaiting || trackingStatus === 'ended'}
         />
         
-        {/* Countdown overlay when waiting (only in non-demo mode) */}
+        {/* Big Countdown overlay when waiting (only in non-demo mode) */}
         {isWaiting && !isDemoMode && (
-          <div className="absolute inset-0 flex items-end justify-center pb-48 pointer-events-none">
-            <div className="glass rounded-2xl p-6 pointer-events-auto animate-slide-up">
+          <div className="absolute inset-0 flex items-center justify-center z-30 bg-background/60 backdrop-blur-sm">
+            <div className="glass rounded-3xl p-8 md:p-12 mx-4 animate-fade-in border border-christmas-gold/30 shadow-2xl">
               <Countdown onTrackingStart={handleTrackingStart} />
             </div>
           </div>
