@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { getDeviceId } from '@/lib/deviceId';
+import { PROFILE_AVATARS } from '@/lib/reyesWaypoints';
 import { MapPin, Search, Navigation, Loader2 } from 'lucide-react';
 
 interface Profile {
@@ -30,12 +31,10 @@ interface ProfileModalProps {
   editingProfile?: Profile | null;
 }
 
-const AVATARS = ['👧', '👦', '👶', '🧒', '👱‍♀️', '👱', '🧒🏽', '👧🏿', '👦🏻', '🧒🏼'];
-
 export function ProfileModal({ isOpen, onClose, onProfileCreated, editingProfile }: ProfileModalProps) {
   const [step, setStep] = useState<'name' | 'location'>('name');
   const [name, setName] = useState('');
-  const [avatar, setAvatar] = useState(AVATARS[0]);
+  const [avatar, setAvatar] = useState(PROFILE_AVATARS[0]);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<GeocodeResult[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<GeocodeResult | null>(null);
@@ -55,7 +54,7 @@ export function ProfileModal({ isOpen, onClose, onProfileCreated, editingProfile
       setStep('name');
     } else {
       setName('');
-      setAvatar(AVATARS[Math.floor(Math.random() * AVATARS.length)]);
+      setAvatar(PROFILE_AVATARS[Math.floor(Math.random() * PROFILE_AVATARS.length)]);
       setSelectedLocation(null);
       setSearchQuery('');
       setSearchResults([]);
@@ -99,7 +98,6 @@ export function ProfileModal({ isOpen, onClose, onProfileCreated, editingProfile
 
       const { latitude, longitude } = position.coords;
       
-      // Reverse geocode to get city name
       const { data, error } = await supabase.functions.invoke('geocode', {
         body: { query: `${latitude},${longitude}` },
       });
@@ -178,7 +176,7 @@ export function ProfileModal({ isOpen, onClose, onProfileCreated, editingProfile
       <DialogContent className="glass border-border/50 max-w-md mx-4">
         <DialogHeader>
           <DialogTitle className="text-2xl font-fredoka text-center text-snow">
-            {editingProfile ? 'Editar casa' : '¡Bienvenido! 🎄'}
+            {editingProfile ? 'Editar casa' : '¡Bienvenido! 👑'}
           </DialogTitle>
         </DialogHeader>
 
@@ -202,13 +200,13 @@ export function ProfileModal({ isOpen, onClose, onProfileCreated, editingProfile
                 Elige tu avatar
               </label>
               <div className="flex flex-wrap gap-2">
-                {AVATARS.map((a) => (
+                {PROFILE_AVATARS.map((a) => (
                   <button
                     key={a}
                     onClick={() => setAvatar(a)}
                     className={`text-3xl p-2 rounded-xl transition-all ${
                       avatar === a
-                        ? 'bg-christmas-red/30 scale-110 ring-2 ring-christmas-gold'
+                        ? 'bg-reyes-gold/30 scale-110 ring-2 ring-reyes-gold'
                         : 'bg-muted/30 hover:bg-muted/50'
                     }`}
                   >
@@ -221,7 +219,7 @@ export function ProfileModal({ isOpen, onClose, onProfileCreated, editingProfile
             <Button
               onClick={() => setStep('location')}
               disabled={!name.trim()}
-              className="gradient-christmas text-snow font-fredoka text-lg py-6"
+              className="gradient-reyes text-snow font-fredoka text-lg py-6"
             >
               Siguiente →
             </Button>
@@ -271,7 +269,6 @@ export function ProfileModal({ isOpen, onClose, onProfileCreated, editingProfile
               </div>
             </div>
 
-            {/* Search results */}
             {searchResults.length > 0 && (
               <div className="bg-muted/30 rounded-xl max-h-40 overflow-y-auto">
                 {searchResults.map((result, index) => (
@@ -283,17 +280,16 @@ export function ProfileModal({ isOpen, onClose, onProfileCreated, editingProfile
                     }}
                     className="w-full text-left px-4 py-3 hover:bg-muted/50 flex items-start gap-2 border-b border-border/30 last:border-0"
                   >
-                    <MapPin className="w-4 h-4 mt-1 shrink-0 text-christmas-red" />
+                    <MapPin className="w-4 h-4 mt-1 shrink-0 text-reyes-gold" />
                     <span className="text-sm line-clamp-2">{result.display_name}</span>
                   </button>
                 ))}
               </div>
             )}
 
-            {/* Selected location */}
             {selectedLocation && (
-              <div className="bg-christmas-green/20 rounded-xl p-4 flex items-start gap-2">
-                <MapPin className="w-5 h-5 mt-0.5 text-christmas-green" />
+              <div className="bg-reyes-purple/20 rounded-xl p-4 flex items-start gap-2">
+                <MapPin className="w-5 h-5 mt-0.5 text-reyes-purple" />
                 <div>
                   <p className="text-sm font-medium text-snow">Tu casa</p>
                   <p className="text-xs text-muted-foreground line-clamp-2">
@@ -314,7 +310,7 @@ export function ProfileModal({ isOpen, onClose, onProfileCreated, editingProfile
               <Button
                 onClick={handleSave}
                 disabled={!selectedLocation || isSaving}
-                className="flex-1 gradient-christmas text-snow font-fredoka"
+                className="flex-1 gradient-reyes text-snow font-fredoka"
               >
                 {isSaving ? (
                   <Loader2 className="w-5 h-5 animate-spin" />

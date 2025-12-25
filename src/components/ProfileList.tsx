@@ -63,7 +63,7 @@ export function ProfileList({
         <Button
           onClick={onCreateProfile}
           size="sm"
-          className="gradient-christmas text-snow"
+          className="gradient-reyes text-snow"
         >
           <Plus className="w-4 h-4 mr-1" />
           Nueva
@@ -74,7 +74,7 @@ export function ProfileList({
         <div className="glass rounded-2xl p-6 text-center">
           <div className="text-4xl mb-3">🏠</div>
           <p className="text-muted-foreground text-sm">
-            Añade una casa para ver cuándo llega Papá Noel
+            Añade una casa para ver cuándo llegan los Reyes
           </p>
         </div>
       ) : (
@@ -84,7 +84,7 @@ export function ProfileList({
               key={profile.id}
               className={`glass rounded-xl p-4 flex items-center gap-3 cursor-pointer transition-all ${
                 selectedProfile?.id === profile.id
-                  ? 'ring-2 ring-christmas-gold bg-christmas-gold/10'
+                  ? 'ring-2 ring-reyes-gold bg-reyes-gold/10'
                   : 'hover:bg-muted/30'
               }`}
               onClick={() => onSelectProfile(profile)}

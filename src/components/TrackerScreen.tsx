@@ -1,22 +1,30 @@
 import { useState, useEffect, useCallback } from 'react';
-import { SantaMap } from './SantaMap';
-import { StatsBar } from './StatsBar';
+import { ReyesMap } from './ReyesMap';
+import { ReyesStatsBar } from './ReyesStatsBar';
 import { ProfileList } from './ProfileList';
 import { ProfileModal } from './ProfileModal';
 import { SettingsSheet } from './SettingsSheet';
-import { MessageToast } from './MessageToast';
+import { ReyesMessageToast } from './ReyesMessageToast';
 import { ConfettiEffect } from './ConfettiEffect';
-import { Countdown } from './Countdown';
+import { ReyesCountdown } from './ReyesCountdown';
 import { SnowEffect } from './SnowEffect';
 import { DemoControls } from './DemoControls';
-import { getSantaPosition, calculateETA, SantaPosition, ETAResult } from '@/lib/santaTracking';
-import { TRACKING_START, TRACKING_END } from '@/lib/waypoints';
+import { ReyesChecklist } from './ReyesChecklist';
+import { 
+  getAllReyesPositions, 
+  getAllReyesETA, 
+  getReyesStats,
+  AllReyesPositions, 
+  AllReyesETA,
+  AllReyesStats,
+} from '@/lib/reyesTracking';
+import { getTrackingStart, getTrackingEnd, ReyName, ETHIOPIA_START } from '@/lib/reyesWaypoints';
 import { getDeviceId } from '@/lib/deviceId';
 import { useDemoStore } from '@/lib/demoStore';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Users, ChevronUp, ChevronDown } from 'lucide-react';
+import { Users, ChevronUp, ChevronDown, Crown } from 'lucide-react';
 
 interface Profile {
   id: string;
@@ -30,6 +38,7 @@ interface Profile {
 }
 
 type TrackingStatus = 'countdown' | 'tracking' | 'ended';
+type VisibleReyes = 'all' | ReyName;
 
 export function TrackerScreen() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -40,13 +49,15 @@ export function TrackerScreen() {
   const [isStatsExpanded, setIsStatsExpanded] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showProfilePrompt, setShowProfilePrompt] = useState(false);
+  const [visibleReyes, setVisibleReyes] = useState<VisibleReyes>('all');
+  const [showChecklist, setShowChecklist] = useState(false);
   
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [santaPosition, setSantaPosition] = useState<SantaPosition>(getSantaPosition(new Date()));
-  const [etaResult, setEtaResult] = useState<ETAResult | null>(null);
+  const [reyesPositions, setReyesPositions] = useState<AllReyesPositions | null>(null);
+  const [reyesETA, setReyesETA] = useState<AllReyesETA | null>(null);
+  const [reyesStats, setReyesStats] = useState<AllReyesStats | null>(null);
   const [trackingStatus, setTrackingStatus] = useState<TrackingStatus>('countdown');
 
-  // Demo mode - use individual selectors to avoid hook issues
   const isDemoMode = useDemoStore((s) => s.isDemoMode);
   const getCurrentTime = useDemoStore((s) => s.getCurrentTime);
   const tick = useDemoStore((s) => s.tick);
@@ -68,11 +79,9 @@ export function TrackerScreen() {
       
       setProfiles(data as Profile[]);
       
-      // Auto-select first profile
       if (data && data.length > 0) {
         setSelectedProfile(data[0] as Profile);
       } else {
-        // Show prompt to create profile after a short delay
         setTimeout(() => setShowProfilePrompt(true), 1500);
       }
     };
@@ -80,19 +89,16 @@ export function TrackerScreen() {
     loadProfiles();
   }, []);
 
-  // Check tracking status based on current time (real or simulated)
+  // Check tracking status
   useEffect(() => {
     const checkStatus = () => {
       const now = getCurrentTime();
-      console.log('Checking status:', {
-        now: now.toISOString(),
-        trackingStart: TRACKING_START.toISOString(),
-        isBefore: now < TRACKING_START,
-        isDemoMode
-      });
-      if (now < TRACKING_START) {
+      const start = getTrackingStart();
+      const end = getTrackingEnd();
+      
+      if (now < start) {
         setTrackingStatus('countdown');
-      } else if (now >= TRACKING_END) {
+      } else if (now >= end) {
         setTrackingStatus('ended');
       } else {
         setTrackingStatus('tracking');
@@ -104,29 +110,33 @@ export function TrackerScreen() {
     return () => clearInterval(interval);
   }, [getCurrentTime, isDemoMode]);
 
-  // Update Santa position and demo tick
+  // Update positions and tick
   useEffect(() => {
     const interval = setInterval(() => {
-      // Tick demo if active
       tick();
       
       const now = getCurrentTime();
       setCurrentTime(now);
-      setSantaPosition(getSantaPosition(now));
-    }, 100); // Faster update for smoother demo
+      
+      if (selectedProfile) {
+        setReyesPositions(getAllReyesPositions(
+          now,
+          selectedProfile.lat,
+          selectedProfile.lon,
+          selectedProfile.city_label
+        ));
+        setReyesETA(getAllReyesETA(
+          selectedProfile.lat,
+          selectedProfile.lon,
+          selectedProfile.city_label,
+          now
+        ));
+      }
+      setReyesStats(getReyesStats(now));
+    }, 100);
     
     return () => clearInterval(interval);
-  }, [getCurrentTime, tick]);
-
-  // Calculate ETA when position or selected profile changes
-  useEffect(() => {
-    if (selectedProfile && trackingStatus === 'tracking') {
-      const eta = calculateETA(selectedProfile.lat, selectedProfile.lon, currentTime);
-      setEtaResult(eta);
-    } else {
-      setEtaResult(null);
-    }
-  }, [selectedProfile, currentTime, trackingStatus]);
+  }, [getCurrentTime, tick, selectedProfile]);
 
   const handleProfileCreated = (profile: Profile) => {
     setProfiles(prev => {
@@ -166,28 +176,44 @@ export function TrackerScreen() {
     <div className="relative h-screen flex flex-col overflow-hidden gradient-night">
       <SnowEffect count={15} />
       
-      {/* Demo Controls */}
       <DemoControls />
       
       {/* Header */}
       <header className="relative z-20 flex items-center justify-between p-4 safe-area-inset">
         <div className="flex items-center gap-2">
-          <span className="text-2xl">🎅</span>
-          <h1 className="font-fredoka text-lg text-snow">Loba Ball</h1>
+          <span className="text-2xl">👑</span>
+          <h1 className="font-fredoka text-lg text-snow">Reyes Magos</h1>
           {isDemoMode && (
-            <span className="text-xs bg-christmas-gold text-accent-foreground px-2 py-0.5 rounded-full">
+            <span className="text-xs bg-reyes-gold text-accent-foreground px-2 py-0.5 rounded-full">
               DEMO
             </span>
           )}
         </div>
         
         <div className="flex items-center gap-2">
+          {/* Rey selector */}
+          <div className="flex bg-muted/50 rounded-xl p-1">
+            {(['all', 'melchor', 'gaspar', 'baltasar'] as VisibleReyes[]).map((rey) => (
+              <button
+                key={rey}
+                onClick={() => setVisibleReyes(rey)}
+                className={`px-2 py-1 rounded-lg text-sm transition-colors ${
+                  visibleReyes === rey 
+                    ? 'bg-reyes-gold text-accent-foreground' 
+                    : 'text-muted-foreground hover:text-snow'
+                }`}
+              >
+                {rey === 'all' ? '👑' : rey === 'melchor' ? '👑' : rey === 'gaspar' ? '🎁' : '⭐'}
+              </button>
+            ))}
+          </div>
+
           <Sheet open={isProfilesSheetOpen} onOpenChange={setIsProfilesSheetOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="text-snow hover:bg-muted/50 relative">
                 <Users className="w-5 h-5" />
                 {profiles.length > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-christmas-red text-xs flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-reyes-gold text-xs flex items-center justify-center text-accent-foreground">
                     {profiles.length}
                   </span>
                 )}
@@ -222,42 +248,60 @@ export function TrackerScreen() {
         </div>
       </header>
 
-      {/* Map - always visible now */}
+      {/* Map */}
       <div className="flex-1 relative z-10">
-        <SantaMap
-          santaPosition={santaPosition}
+        <ReyesMap
           currentTime={currentTime}
           selectedProfile={selectedProfile}
           isTracking={isTracking}
-          showSantaAtVillage={isWaiting || trackingStatus === 'ended'}
+          showAtStart={isWaiting || trackingStatus === 'ended'}
+          visibleReyes={visibleReyes}
         />
         
-        {/* Big Countdown overlay when waiting (only in non-demo mode) */}
+        {/* Countdown overlay */}
         {isWaiting && !isDemoMode && (
           <div className="absolute inset-0 flex items-center justify-center z-30 bg-background/60 backdrop-blur-sm">
-            <div className="glass rounded-3xl p-8 md:p-12 mx-4 animate-fade-in border border-christmas-gold/30 shadow-2xl">
-              <Countdown onTrackingStart={handleTrackingStart} />
+            <div className="glass rounded-3xl p-8 md:p-12 mx-4 animate-fade-in border border-reyes-gold/30 shadow-2xl">
+              <ReyesCountdown onTrackingStart={handleTrackingStart} />
             </div>
           </div>
         )}
         
-        {/* Prompt to add profile */}
+        {/* Profile prompt */}
         {showProfilePrompt && profiles.length === 0 && !isDemoMode && (
           <div className="absolute bottom-32 left-4 right-4 z-30 animate-slide-up">
             <div className="glass rounded-2xl p-4 flex items-center gap-4">
               <div className="text-3xl">🏠</div>
               <div className="flex-1">
                 <p className="text-snow font-fredoka">¡Añade tu casa!</p>
-                <p className="text-xs text-muted-foreground">Para saber cuándo llegará Papá Noel</p>
+                <p className="text-xs text-muted-foreground">Para saber cuándo llegarán los Reyes</p>
               </div>
               <Button
                 onClick={() => setIsProfileModalOpen(true)}
-                className="gradient-christmas text-snow"
+                className="gradient-reyes text-snow"
                 size="sm"
               >
                 Añadir
               </Button>
             </div>
+          </div>
+        )}
+
+        {/* Checklist toggle */}
+        {selectedProfile && (
+          <Button
+            onClick={() => setShowChecklist(!showChecklist)}
+            className="absolute bottom-4 right-4 z-30 glass"
+            size="sm"
+          >
+            ✅ Checklist
+          </Button>
+        )}
+
+        {/* Checklist panel */}
+        {showChecklist && selectedProfile && (
+          <div className="absolute bottom-16 right-4 z-30 animate-slide-up">
+            <ReyesChecklist profileId={selectedProfile.id} />
           </div>
         )}
       </div>
@@ -276,13 +320,15 @@ export function TrackerScreen() {
         </button>
         
         {isStatsExpanded && (
-          <StatsBar
-            santaPosition={santaPosition}
-            etaResult={etaResult}
+          <ReyesStatsBar
+            reyesPositions={reyesPositions}
+            reyesETA={reyesETA}
+            reyesStats={reyesStats}
             selectedProfile={selectedProfile}
             currentTime={currentTime}
             isTracking={isTracking}
             isWaiting={isWaiting}
+            visibleReyes={visibleReyes}
           />
         )}
       </div>
@@ -298,16 +344,15 @@ export function TrackerScreen() {
         editingProfile={editingProfile}
       />
 
-      <MessageToast
+      <ReyesMessageToast
         isTracking={isTracking}
-        santaProgress={santaPosition.progress}
-        etaResult={etaResult}
+        reyesPositions={reyesPositions}
+        reyesETA={reyesETA}
         selectedProfile={selectedProfile}
-        currentLocation={santaPosition.currentLocation}
       />
 
       <ConfettiEffect
-        etaResult={etaResult}
+        etaResult={reyesETA?.combined || null}
         profileId={selectedProfile?.id || null}
       />
     </div>

@@ -1,6 +1,6 @@
 import { useEffect, useCallback } from 'react';
 import confetti from 'canvas-confetti';
-import { ETAResult } from '@/lib/santaTracking';
+import { ETAResult } from '@/lib/reyesTracking';
 
 interface ConfettiEffectProps {
   etaResult: ETAResult | null;
@@ -9,8 +9,8 @@ interface ConfettiEffectProps {
 
 export function ConfettiEffect({ etaResult, profileId }: ConfettiEffectProps) {
   const triggerConfetti = useCallback(() => {
-    // Christmas colors confetti
-    const colors = ['#c9302c', '#2e7d32', '#ffd700', '#ffffff'];
+    // Reyes Magos colors - gold, purple, blue, red
+    const colors = ['#FFD700', '#8B5CF6', '#3498DB', '#E74C3C', '#ffffff'];
     
     confetti({
       particleCount: 100,
@@ -19,7 +19,6 @@ export function ConfettiEffect({ etaResult, profileId }: ConfettiEffectProps) {
       colors,
     });
 
-    // Second burst
     setTimeout(() => {
       confetti({
         particleCount: 50,
@@ -42,7 +41,6 @@ export function ConfettiEffect({ etaResult, profileId }: ConfettiEffectProps) {
   }, []);
 
   useEffect(() => {
-    // Trigger confetti when Santa arrives at the selected house
     if (etaResult?.isNear && profileId) {
       triggerConfetti();
     }
