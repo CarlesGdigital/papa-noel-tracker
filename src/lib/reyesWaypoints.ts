@@ -45,9 +45,9 @@ export const ETHIOPIA_START = {
   label: 'Addis Abeba, Etiopía',
 };
 
-// Evento por defecto: 5 de enero
+// Evento por defecto: 5 de enero 2026
 // Se puede cambiar en ajustes para pruebas
-let eventDate = '2025-01-05';
+let eventDate = '2026-01-05';
 
 export function setEventDate(date: string) {
   eventDate = date;
