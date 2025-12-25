@@ -27,7 +27,7 @@ export function DemoControls() {
     });
   };
 
-  const speeds = [60, 600, 1000, 2000];
+  const speeds = [100, 600, 1000, 2000];
 
   return (
     <div className="fixed top-16 left-4 right-4 z-40 animate-slide-in-top">
