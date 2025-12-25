@@ -96,9 +96,14 @@ export function TrackerScreen() {
       const start = getTrackingStart();
       const end = getTrackingEnd();
       
-      if (now < start) {
+      // Usar timestamps para comparación más precisa
+      const nowMs = now.getTime();
+      const startMs = start.getTime();
+      const endMs = end.getTime();
+      
+      if (nowMs < startMs) {
         setTrackingStatus('countdown');
-      } else if (now >= end) {
+      } else if (nowMs >= endMs) {
         setTrackingStatus('ended');
       } else {
         setTrackingStatus('tracking');
@@ -106,14 +111,17 @@ export function TrackerScreen() {
     };
     
     checkStatus();
-    const interval = setInterval(checkStatus, 1000);
+    const interval = setInterval(checkStatus, 500);
     return () => clearInterval(interval);
   }, [getCurrentTime, isDemoMode]);
 
-  // Update positions and tick
+  // Update positions and tick - usar intervalo más frecuente
   useEffect(() => {
-    const interval = setInterval(() => {
-      tick();
+    const updatePositions = () => {
+      // Tick primero si está en modo demo
+      if (isDemoMode) {
+        tick();
+      }
       
       const now = getCurrentTime();
       setCurrentTime(now);
@@ -133,10 +141,16 @@ export function TrackerScreen() {
         ));
       }
       setReyesStats(getReyesStats(now));
-    }, 100);
+    };
+    
+    // Actualizar inmediatamente
+    updatePositions();
+    
+    // Luego cada 100ms
+    const interval = setInterval(updatePositions, 100);
     
     return () => clearInterval(interval);
-  }, [getCurrentTime, tick, selectedProfile]);
+  }, [getCurrentTime, tick, selectedProfile, isDemoMode]);
 
   const handleProfileCreated = (profile: Profile) => {
     setProfiles(prev => {

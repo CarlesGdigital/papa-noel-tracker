@@ -105,14 +105,17 @@ export function ReyesMap({
     const reyes: ReyName[] = ['melchor', 'gaspar', 'baltasar'];
 
     reyes.forEach((rey) => {
+      // Si showAtStart está activo, forzar posición en Etiopía
+      // Si NO, usar la posición calculada desde el tracking
       const position = showAtStart 
-        ? { lat: ETHIOPIA_START.lat, lon: ETHIOPIA_START.lon }
+        ? { lat: ETHIOPIA_START.lat + (rey === 'gaspar' ? 0.05 : rey === 'baltasar' ? -0.05 : 0), 
+            lon: ETHIOPIA_START.lon + (rey === 'gaspar' ? 0.05 : rey === 'baltasar' ? -0.05 : 0) }
         : positions[rey];
       
       const shouldShow = visibleReyes === 'all' || visibleReyes === rey;
       const statusText = showAtStart 
         ? '🐪 Descansando en Etiopía' 
-        : positions[rey].currentSegmentLabel;
+        : `📍 ${positions[rey].currentSegmentLabel}`;
 
       if (reyMarkersRef.current[rey]) {
         if (shouldShow) {
@@ -150,7 +153,7 @@ export function ReyesMap({
           `);
       }
     });
-  }, [positions, showAtStart, visibleReyes]);
+  }, [positions, showAtStart, visibleReyes, currentTime]);
 
   // Update start marker - siempre visible
   useEffect(() => {

@@ -28,16 +28,24 @@ type DemoStore = DemoState & DemoActions;
 
 const demoStore = createStore<DemoStore>((set, get) => ({
   isDemoMode: false,
-  simulatedTime: getTrackingStart(),
-  speedMultiplier: 100,
+  simulatedTime: new Date(),
+  speedMultiplier: 600,  // Default speed más rápido
   isPlaying: false,
   eventDate: getEventDate(),
   
-  enableDemoMode: () => set({ 
-    isDemoMode: true, 
-    simulatedTime: getTrackingStart(),
-    isPlaying: true,
-  }),
+  enableDemoMode: () => {
+    // Al activar el modo demo, usamos la fecha configurada y empezamos LIGERAMENTE después de las 08:00
+    // para evitar problemas de comparación exacta
+    const currentEventDate = getEventDate();
+    setEventDate(currentEventDate);
+    const startTime = new Date(`${currentEventDate}T08:00:01+01:00`); // 1 segundo después del inicio
+    set({ 
+      isDemoMode: true, 
+      simulatedTime: startTime,
+      isPlaying: true,
+      eventDate: currentEventDate,
+    });
+  },
   
   disableDemoMode: () => set({ 
     isDemoMode: false, 
