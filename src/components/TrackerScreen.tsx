@@ -258,8 +258,8 @@ export function TrackerScreen() {
           visibleReyes={visibleReyes}
         />
         
-        {/* Countdown overlay */}
-        {isWaiting && !isDemoMode && (
+        {/* Countdown overlay - Antes del tracking, los Reyes descansan en Etiopía */}
+        {isWaiting && (
           <div className="absolute inset-0 flex items-center justify-center z-30 bg-background/60 backdrop-blur-sm">
             <div className="glass rounded-3xl p-8 md:p-12 mx-4 animate-fade-in border border-reyes-gold/30 shadow-2xl">
               <ReyesCountdown onTrackingStart={handleTrackingStart} />

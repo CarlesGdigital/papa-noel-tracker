@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { getTrackingStart } from '@/lib/reyesWaypoints';
+import { getTrackingStart, getEventDate } from '@/lib/reyesWaypoints';
+import { useDemoStore } from '@/lib/demoStore';
 
 interface ReyesCountdownProps {
   onTrackingStart: () => void;
@@ -13,9 +14,12 @@ export function ReyesCountdown({ onTrackingStart }: ReyesCountdownProps) {
     seconds: 0,
   });
 
+  const getCurrentTime = useDemoStore((s) => s.getCurrentTime);
+  const isDemoMode = useDemoStore((s) => s.isDemoMode);
+
   useEffect(() => {
     const calculateTimeLeft = () => {
-      const now = new Date();
+      const now = getCurrentTime();
       const target = getTrackingStart();
       const diff = target.getTime() - now.getTime();
 
@@ -33,9 +37,16 @@ export function ReyesCountdown({ onTrackingStart }: ReyesCountdownProps) {
     };
 
     calculateTimeLeft();
-    const interval = setInterval(calculateTimeLeft, 1000);
+    const interval = setInterval(calculateTimeLeft, isDemoMode ? 100 : 1000);
     return () => clearInterval(interval);
-  }, [onTrackingStart]);
+  }, [onTrackingStart, getCurrentTime, isDemoMode]);
+
+  // Formatear fecha del evento
+  const eventDate = getEventDate();
+  const formattedDate = new Date(eventDate + 'T00:00:00').toLocaleDateString('es-ES', {
+    day: 'numeric',
+    month: 'long',
+  });
 
   return (
     <div className="text-center">
@@ -46,22 +57,38 @@ export function ReyesCountdown({ onTrackingStart }: ReyesCountdownProps) {
       </div>
       
       <h2 className="text-2xl font-fredoka text-snow mb-2">
-        Los Reyes Magos saldrán pronto
+        Los Reyes Magos están descansando
       </h2>
-      <p className="text-muted-foreground mb-6">5 de enero a las 08:00</p>
+      <p className="text-muted-foreground mb-4">
+        🏕️ En su campamento de Etiopía
+      </p>
+      <p className="text-reyes-gold font-medium mb-6">
+        Saldrán el {formattedDate} a las 08:00
+      </p>
 
-      <div className="flex justify-center gap-4 mb-6">
+      <div className="flex justify-center gap-3 mb-6">
         <TimeUnit value={timeLeft.days} label="días" />
+        <div className="text-2xl text-reyes-gold/50 self-center">:</div>
         <TimeUnit value={timeLeft.hours} label="horas" />
+        <div className="text-2xl text-reyes-gold/50 self-center">:</div>
         <TimeUnit value={timeLeft.minutes} label="min" />
+        <div className="text-2xl text-reyes-gold/50 self-center">:</div>
         <TimeUnit value={timeLeft.seconds} label="seg" />
       </div>
 
-      <p className="text-sm text-muted-foreground">
-        Melchor, Gaspar y Baltasar viajarán
-        <br />
-        desde Etiopía hasta tu casa 🐪
-      </p>
+      <div className="bg-reyes-gold/10 rounded-xl p-4 border border-reyes-gold/20">
+        <p className="text-sm text-muted-foreground">
+          🐪 Melchor, Gaspar y Baltasar están preparando
+          <br />
+          los camellos y cargando los regalos
+        </p>
+      </div>
+
+      {isDemoMode && (
+        <p className="text-xs text-reyes-gold mt-4">
+          ⚡ Modo demo activo - usa los controles para saltar al inicio
+        </p>
+      )}
     </div>
   );
 }
@@ -69,8 +96,8 @@ export function ReyesCountdown({ onTrackingStart }: ReyesCountdownProps) {
 function TimeUnit({ value, label }: { value: number; label: string }) {
   return (
     <div className="flex flex-col items-center">
-      <div className="w-16 h-16 rounded-xl bg-reyes-gold/20 border border-reyes-gold/30 flex items-center justify-center">
-        <span className="text-2xl font-fredoka text-reyes-gold">
+      <div className="w-14 h-14 md:w-16 md:h-16 rounded-xl bg-reyes-gold/20 border border-reyes-gold/30 flex items-center justify-center">
+        <span className="text-xl md:text-2xl font-fredoka text-reyes-gold">
           {String(value).padStart(2, '0')}
         </span>
       </div>

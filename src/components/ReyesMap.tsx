@@ -84,7 +84,7 @@ export function ReyesMap({
     };
   }, []);
 
-  // Get positions
+  // Get positions - siempre calculamos aunque sea para mostrar en Etiopía
   const positions: AllReyesPositions | null = selectedProfile 
     ? getAllReyesPositions(
         currentTime, 
@@ -92,9 +92,13 @@ export function ReyesMap({
         selectedProfile.lon, 
         selectedProfile.city_label
       )
-    : null;
+    : {
+        melchor: { lat: ETHIOPIA_START.lat, lon: ETHIOPIA_START.lon, heading: 0, speed: 0, altitude: 0, currentSegmentLabel: 'Descansando', nextStop: '', progress: 0 },
+        gaspar: { lat: ETHIOPIA_START.lat, lon: ETHIOPIA_START.lon, heading: 0, speed: 0, altitude: 0, currentSegmentLabel: 'Descansando', nextStop: '', progress: 0 },
+        baltasar: { lat: ETHIOPIA_START.lat, lon: ETHIOPIA_START.lon, heading: 0, speed: 0, altitude: 0, currentSegmentLabel: 'Descansando', nextStop: '', progress: 0 },
+      };
 
-  // Update Rey markers
+  // Update Rey markers - SIEMPRE mostrar los Reyes (en Etiopía si están descansando)
   useEffect(() => {
     if (!mapRef.current || !positions) return;
 
@@ -106,10 +110,22 @@ export function ReyesMap({
         : positions[rey];
       
       const shouldShow = visibleReyes === 'all' || visibleReyes === rey;
+      const statusText = showAtStart 
+        ? '🐪 Descansando en Etiopía' 
+        : positions[rey].currentSegmentLabel;
 
       if (reyMarkersRef.current[rey]) {
         if (shouldShow) {
           reyMarkersRef.current[rey]!.setLatLng([position.lat, position.lon]);
+          // Actualizar popup
+          reyMarkersRef.current[rey]!.setPopupContent(`
+            <div style="text-align: center;">
+              <p style="font-weight: bold; margin: 0;">${REY_ICONS[rey]} ${REYES_INFO[rey].name}</p>
+              <p style="font-size: 12px; color: #666; margin: 4px 0 0 0;">
+                ${statusText}
+              </p>
+            </div>
+          `);
         } else {
           reyMarkersRef.current[rey]!.remove();
           reyMarkersRef.current[rey] = null;
@@ -128,7 +144,7 @@ export function ReyesMap({
             <div style="text-align: center;">
               <p style="font-weight: bold; margin: 0;">${REY_ICONS[rey]} ${REYES_INFO[rey].name}</p>
               <p style="font-size: 12px; color: #666; margin: 4px 0 0 0;">
-                ${showAtStart ? 'Preparándose en Etiopía' : positions[rey].currentSegmentLabel}
+                ${statusText}
               </p>
             </div>
           `);
@@ -136,13 +152,13 @@ export function ReyesMap({
     });
   }, [positions, showAtStart, visibleReyes]);
 
-  // Update start marker
+  // Update start marker - siempre visible
   useEffect(() => {
     if (!mapRef.current) return;
 
-    if (isTracking && !startMarkerRef.current) {
+    if (!startMarkerRef.current) {
       const startIcon = L.divIcon({
-        html: `<div style="font-size: 28px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">🐪</div>`,
+        html: `<div style="font-size: 28px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">🏕️</div>`,
         className: 'start-marker',
         iconSize: [36, 36],
         iconAnchor: [18, 18],
@@ -152,15 +168,12 @@ export function ReyesMap({
         .addTo(mapRef.current)
         .bindPopup(`
           <div style="text-align: center;">
-            <p style="font-weight: bold; margin: 0;">🐪 Punto de salida</p>
+            <p style="font-weight: bold; margin: 0;">🏕️ Campamento Real</p>
             <p style="font-size: 12px; color: #666; margin: 4px 0 0 0;">Addis Abeba, Etiopía</p>
           </div>
         `);
-    } else if (!isTracking && startMarkerRef.current) {
-      startMarkerRef.current.remove();
-      startMarkerRef.current = null;
     }
-  }, [isTracking]);
+  }, []);
 
   // Update home marker
   useEffect(() => {
