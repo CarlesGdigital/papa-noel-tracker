@@ -1,11 +1,12 @@
 import { createStore, useStore } from 'zustand';
-import { TRACKING_START, TRACKING_END } from './waypoints';
+import { getTrackingStart, getTrackingEnd, getEventDate, setEventDate } from './reyesWaypoints';
 
 interface DemoState {
   isDemoMode: boolean;
   simulatedTime: Date;
   speedMultiplier: number;
   isPlaying: boolean;
+  eventDate: string;
 }
 
 interface DemoActions {
@@ -15,24 +16,26 @@ interface DemoActions {
   togglePlayPause: () => void;
   jumpToTime: (date: Date) => void;
   jumpToStart: () => void;
+  jumpToEurope: () => void;
   jumpToSpain: () => void;
-  jumpToValencia: () => void;
   jumpToEnd: () => void;
   tick: () => void;
   getCurrentTime: () => Date;
+  changeEventDate: (date: string) => void;
 }
 
 type DemoStore = DemoState & DemoActions;
 
 const demoStore = createStore<DemoStore>((set, get) => ({
   isDemoMode: false,
-  simulatedTime: new Date(TRACKING_START),
+  simulatedTime: getTrackingStart(),
   speedMultiplier: 100,
   isPlaying: false,
+  eventDate: getEventDate(),
   
   enableDemoMode: () => set({ 
     isDemoMode: true, 
-    simulatedTime: new Date(TRACKING_START),
+    simulatedTime: getTrackingStart(),
     isPlaying: true,
   }),
   
@@ -47,25 +50,37 @@ const demoStore = createStore<DemoStore>((set, get) => ({
   
   jumpToTime: (date) => set({ simulatedTime: date }),
   
-  jumpToStart: () => set({ 
-    simulatedTime: new Date(TRACKING_START),
-    isPlaying: true,
-  }),
+  jumpToStart: () => {
+    const { eventDate } = get();
+    set({ 
+      simulatedTime: new Date(`${eventDate}T08:00:00+01:00`),
+      isPlaying: true,
+    });
+  },
   
-  jumpToSpain: () => set({ 
-    simulatedTime: new Date('2025-12-24T21:00:00+01:00'),
-    isPlaying: true,
-  }),
+  jumpToEurope: () => {
+    const { eventDate } = get();
+    set({ 
+      simulatedTime: new Date(`${eventDate}T14:00:00+01:00`),
+      isPlaying: true,
+    });
+  },
   
-  jumpToValencia: () => set({ 
-    simulatedTime: new Date('2025-12-24T23:20:00+01:00'),
-    isPlaying: true,
-  }),
+  jumpToSpain: () => {
+    const { eventDate } = get();
+    set({ 
+      simulatedTime: new Date(`${eventDate}T15:30:00+01:00`),
+      isPlaying: true,
+    });
+  },
   
-  jumpToEnd: () => set({ 
-    simulatedTime: new Date('2025-12-25T07:50:00+01:00'),
-    isPlaying: true,
-  }),
+  jumpToEnd: () => {
+    const { eventDate } = get();
+    set({ 
+      simulatedTime: new Date(`${eventDate}T17:55:00+01:00`),
+      isPlaying: true,
+    });
+  },
   
   tick: () => {
     const { isDemoMode, isPlaying, simulatedTime, speedMultiplier } = get();
@@ -73,8 +88,8 @@ const demoStore = createStore<DemoStore>((set, get) => ({
     
     const newTime = new Date(simulatedTime.getTime() + 1000 * speedMultiplier);
     
-    if (newTime >= TRACKING_END) {
-      set({ simulatedTime: TRACKING_END, isPlaying: false });
+    if (newTime >= getTrackingEnd()) {
+      set({ simulatedTime: getTrackingEnd(), isPlaying: false });
       return;
     }
     
@@ -84,6 +99,14 @@ const demoStore = createStore<DemoStore>((set, get) => ({
   getCurrentTime: () => {
     const { isDemoMode, simulatedTime } = get();
     return isDemoMode ? simulatedTime : new Date();
+  },
+  
+  changeEventDate: (date: string) => {
+    setEventDate(date);
+    set({ 
+      eventDate: date,
+      simulatedTime: new Date(`${date}T08:00:00+01:00`),
+    });
   },
 }));
 

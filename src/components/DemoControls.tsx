@@ -10,8 +10,8 @@ export function DemoControls() {
   const togglePlayPause = useDemoStore((s) => s.togglePlayPause);
   const setSpeedMultiplier = useDemoStore((s) => s.setSpeedMultiplier);
   const jumpToStart = useDemoStore((s) => s.jumpToStart);
+  const jumpToEurope = useDemoStore((s) => s.jumpToEurope);
   const jumpToSpain = useDemoStore((s) => s.jumpToSpain);
-  const jumpToValencia = useDemoStore((s) => s.jumpToValencia);
   const jumpToEnd = useDemoStore((s) => s.jumpToEnd);
   const disableDemoMode = useDemoStore((s) => s.disableDemoMode);
 
@@ -27,7 +27,7 @@ export function DemoControls() {
     });
   };
 
-  const speeds = [10, 100, 500, 1000];
+  const speeds = [60, 600, 1000, 2000];
 
   return (
     <div className="fixed top-16 left-4 right-4 z-40 animate-slide-in-top">
@@ -51,7 +51,7 @@ export function DemoControls() {
         {/* Current time */}
         <div className="bg-muted/30 rounded-xl p-3 text-center">
           <p className="text-xs text-muted-foreground">Hora simulada</p>
-          <p className="text-lg font-mono text-christmas-gold">
+          <p className="text-lg font-mono text-reyes-gold">
             {formatTime(simulatedTime)}
           </p>
         </div>
@@ -70,7 +70,7 @@ export function DemoControls() {
           <Button
             size="icon"
             onClick={togglePlayPause}
-            className="gradient-christmas text-snow w-12 h-12"
+            className="gradient-reyes text-snow w-12 h-12"
           >
             {isPlaying ? (
               <Pause className="w-5 h-5" />
@@ -98,9 +98,9 @@ export function DemoControls() {
               variant={speedMultiplier === speed ? "default" : "outline"}
               size="sm"
               onClick={() => setSpeedMultiplier(speed)}
-              className={speedMultiplier === speed ? "gradient-christmas text-snow" : ""}
+              className={speedMultiplier === speed ? "gradient-reyes text-snow" : ""}
             >
-              {speed}x
+              x{speed}
             </Button>
           ))}
         </div>
@@ -119,20 +119,20 @@ export function DemoControls() {
           <Button
             variant="outline"
             size="sm"
-            onClick={jumpToSpain}
+            onClick={jumpToEurope}
             className="flex items-center gap-1"
           >
             <MapPin className="w-3 h-3" />
-            <span className="text-xs">España</span>
+            <span className="text-xs">Europa</span>
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={jumpToValencia}
+            onClick={jumpToSpain}
             className="flex items-center gap-1"
           >
             <Flag className="w-3 h-3" />
-            <span className="text-xs">Valencia</span>
+            <span className="text-xs">España</span>
           </Button>
         </div>
       </div>
