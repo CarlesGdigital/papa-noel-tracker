@@ -113,9 +113,9 @@ export default {
         "scale-in": "scale-in 0.3s ease-out",
       },
       boxShadow: {
-        'glow-red': '0 0 20px hsl(var(--christmas-red) / 0.5)',
-        'glow-gold': '0 0 20px hsl(var(--christmas-gold) / 0.5)',
-        'glow-green': '0 0 20px hsl(var(--christmas-green) / 0.5)',
+        'glow-gold': '0 0 20px hsl(var(--reyes-gold) / 0.5)',
+        'glow-purple': '0 0 20px hsl(var(--reyes-purple) / 0.5)',
+        'glow-blue': '0 0 20px hsl(var(--reyes-blue) / 0.5)',
         'soft': '0 4px 20px rgba(0, 0, 0, 0.3)',
       },
     },
